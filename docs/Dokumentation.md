@@ -43,7 +43,7 @@ I dette første sprint blev grundlaget for projektet lagt. Fokus er på at løse
 
 Jeg har valgt at bruge datasættet fra **Capital Bikeshare**, som indeholder detaljerede oplysninger om udlejninger over to år, inkl. dato, vejr, temperatur, sæson og antal udlejninger. Projektet bruger Python til dataanalyse og visualisering og bliver dokumenteret og delt via GitHub.
 
-### 🔧 Resultater og leverancer:
+### Resultater og leverancer:
 - Problemformulering og researchspørgsmål defineret
 - Projektstruktur og værktøjer sat op (VS Code, Python, GitHub)
 - Datasæt valgt og downloadet
