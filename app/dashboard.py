@@ -43,10 +43,14 @@ for d in range(0, 7):
 # Konverter til DataFrame
 input_df = pd.DataFrame([base_input])
 
+<<<<<<< HEAD
 # Forudsig
 try:
     model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'random_forest_model.joblib')
     model = joblib.load(model_path)
+=======
+if st.button("Forudsig antal udlejninger"):
+>>>>>>> 1e27d7bd3802a307d397619b7ef134b7ab6e1576
     prediction = model.predict(input_df)[0]
     st.success(f"Forventet antal cykeludlejninger: {int(prediction)}")
 except Exception as e:
