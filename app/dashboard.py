@@ -1,60 +1,53 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import numpy as np
+import os
 
-# Indlæs model og feature-navne
-model = joblib.load('models/linear_model.joblib')
-feature_names = joblib.load('models/feature_names.joblib')
+st.title("SmartBike TimeAdvisor – Forudsig cykeludlejning")
 
-st.set_page_config(page_title="SmartBike Forudsigelse", layout="centered")
-st.title("SmartBike – Forudsig cykeludlejning")
+st.markdown("Forudsig hvor mange cykler der forventes udlejet en bestemt dag baseret på vejr og ugedag.")
 
-st.write("Vælg vejr og dag, og se hvor mange cykler der forventes udlejet.")
+# Inputfelter
+season = st.selectbox("Sæson", [1, 2, 3, 4], format_func=lambda x: {1: "Forår", 2: "Sommer", 3: "Efterår", 4: "Vinter"}[x])
+mnth = st.slider("Måned", 1, 12, 6)
+holiday = st.radio("Er det en helligdag?", ["Ja", "Nej"])
+weekday = st.slider("Ugedag (0=Mandag ... 6=Søndag)", 0, 6, 2)
+workingday = st.radio("Er det en arbejdsdag?", ["Ja", "Nej"])
+weathersit = st.selectbox("Vejrtype", [1, 2, 3], format_func=lambda x: {1: "Klart/let skyet", 2: "Skyet", 3: "Regn/sne"}[x])
+temp = st.slider("Temperatur (0-1)", 0.0, 1.0, 0.5)
+hum = st.slider("Luftfugtighed (0-1)", 0.0, 1.0, 0.5)
+windspeed = st.slider("Vindstyrke (0-1)", 0.0, 1.0, 0.3)
+yr = st.selectbox("År", [0, 1], format_func=lambda x: "2011" if x == 0 else "2012")
 
-# Temperatur i grader celsius
-temp_c = st.slider("Temperatur (°C)", -5, 40, 20)
-atemp_c = st.slider("Følt temperatur (°C)", -5, 45, 21)
-
-# Luftfugtighed i %
-hum_percent = st.slider("Luftfugtighed (%)", 0, 100, 60)
-
-# Vindstyrke i m/s
-windspeed_ms = st.slider("Vindstyrke (m/s)", 0, 67, 15)
-
-
-
-# Sæson og ugedag
-season = st.selectbox("Sæson", ['Spring', 'Summer', 'Fall', 'Winter'])
-weekday = st.selectbox("Ugedag", ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
-
-# Konverter til modelens skala
-temp = temp_c / 41
-atemp = atemp_c / 50
-hum = hum_percent / 100
-windspeed = windspeed_ms / 67
-
-# Lav dictionary til input
-input_dict = {
-    'temp': temp,
-    'atemp': atemp,
-    'hum': hum,
-    'windspeed': windspeed,
-    f'season_{season}': 1,
-    f'weekday_{weekday}': 1
+# Base input dictionary – uden 'atemp'
+base_input = {
+    "yr": yr,
+    "mnth": mnth,
+    "holiday": 1 if holiday == "Ja" else 0,
+    "workingday": 1 if workingday == "Ja" else 0,
+    "weathersit": weathersit,
+    "temp": temp,
+    "hum": hum,
+    "windspeed": windspeed
 }
 
-# Konverter til DataFrame og tilføj manglende features som 0
-input_df = pd.DataFrame([input_dict])
-for col in feature_names:
-    if col not in input_df.columns:
-        input_df[col] = 0
+# One-hot encoding for 'season'
+for s in range(1, 5):
+    base_input[f"season_{s}"] = 1 if season == s else 0
 
-# Sørg for at kolonnerne står i rigtig rækkefølge
-input_df = input_df[feature_names]
+# One-hot encoding for 'weekday'
+for d in range(0, 7):
+    base_input[f"weekday_{d}"] = 1 if weekday == d else 0
 
+# Konverter til DataFrame
+input_df = pd.DataFrame([base_input])
 
-# Knap til at forudsige
-if st.button("Forudsig antal udlejninger"):
+# Forudsig
+try:
+    model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'random_forest_model.joblib')
+    model = joblib.load(model_path)
     prediction = model.predict(input_df)[0]
-    st.subheader(f"Forventet antal udlejninger: **{int(prediction)} cykler**")
-
+    st.success(f"Forventet antal cykeludlejninger: {int(prediction)}")
+except Exception as e:
+    st.error(f"Kunne ikke forudsige: {e}")
