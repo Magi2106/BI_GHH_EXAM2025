@@ -53,7 +53,6 @@ for col in feature_names:
 input_df = input_df[feature_names]
 
 
-# Knap til at forudsige
 if st.button("Forudsig antal udlejninger"):
     prediction = model.predict(input_df)[0]
     st.subheader(f"Forventet antal udlejninger: **{int(prediction)} cykler**")
